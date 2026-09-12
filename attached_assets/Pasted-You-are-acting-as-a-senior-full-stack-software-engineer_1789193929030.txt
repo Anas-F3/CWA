@@ -1,0 +1,968 @@
+You are acting as a senior full-stack software engineer, solution architect, AI engineer, product designer, and technical lead. Build a functional hackathon MVP called “The City Around You”.
+
+The goal is to create an AI-powered civic intelligence and complaint management platform for Karachi. The platform allows citizens to report civic problems using text, voice, photographs, or video. AI understands the report, classifies the issue, determines the responsible authority, evaluates urgency, checks whether the reported location is near a sensitive location, evaluates report authenticity, generates a properly formatted complaint, and routes it to the appropriate authority. Authorities can manage, prioritize, assign, investigate, update, and resolve cases. Administrators can manage citizens, authorities, system configuration, routing rules, sensitive locations, and suspicious reports.
+
+This is a hackathon prototype, so prioritize a polished, convincing, fully working end-to-end experience over production-level complexity. Build the core flows completely and use realistic mocked integrations where actual government APIs or external systems are unavailable. Do not create fake functionality that appears to work but has no underlying implementation. Clearly separate mocked integrations from real functionality.
+
+Before making any destructive change, deleting existing functionality, changing project architecture, installing major dependencies, changing environment configuration, modifying authentication, changing database structure, or overwriting existing code, first explain what you intend to change and ask for permission. Do not make assumptions about existing project conventions. Inspect the existing project before making architectural decisions. Preserve useful existing code and follow the project's established patterns when appropriate.
+
+The primary product statement is:
+
+“Describe what is wrong. AI understands it, determines who should handle it, decides how urgent it is, checks its authenticity, and helps make sure it actually gets resolved.”
+
+The product should have three primary roles.
+
+1. Citizen / Reporter
+
+A citizen can register and log in using identity information including CNIC, phone number, and email. Treat the CNIC as sensitive information. Do not display it unnecessarily throughout the application. Internally associate the citizen with a unique citizen ID and use that ID throughout normal application workflows.
+
+The citizen dashboard should allow the user to:
+
+* Create a civic report.
+* Upload a photograph.
+* Upload a video where supported.
+* Record or upload a voice report where supported.
+* Enter a typed description.
+* Submit the report in English, Urdu, or Roman Urdu.
+* Select or confirm the issue location.
+* Review the AI interpretation before final submission.
+* See the detected issue category.
+* See the recommended authority.
+* See the priority level.
+* See whether a sensitive location is nearby.
+* See report verification status.
+* Submit the complaint.
+* Track complaint progress.
+* Receive updates.
+* Respond to verification requests.
+* Confirm whether an issue has actually been resolved.
+* Reject a resolution if the issue remains.
+* View their previous reports.
+* View relevant nearby civic incidents where appropriate.
+
+The citizen reporting experience should be extremely simple. Do not force the user to complete a long government-style form. Let AI extract as much information as possible from the citizen’s natural input and only ask additional questions when the missing information would materially affect routing, priority, verification, or resolution.
+
+The system must support natural language such as:
+
+“Yahan do din se gutter ka pani road par khara hai aur school ke bachay isi raste se guzarte hain.”
+
+The system should be capable of converting this into structured information such as:
+
+Issue: Sewage overflow
+Location: Extracted or selected by user
+Duration: Approximately two days
+Nearby sensitive location: School
+Potential impact: Pedestrian and public-health risk
+Recommended authority: Appropriate water/sewerage authority
+Priority: High or Critical depending on the rules
+Language: Urdu/Roman Urdu
+Complaint summary: Generated automatically
+
+2. Authority / Vendor
+
+The second role represents an organization responsible for civic services. Examples include KMC, KW&SC, SSWMB, town administrations, cantonment boards, and future authorities that may be onboarded.
+
+Do not hard-code the application so that only these organizations can exist. Authorities should be configurable by administrators.
+
+Authority users should be able to:
+
+* Log in.
+* See only reports relevant to their organization unless they have elevated permissions.
+* View new reports.
+* View assigned reports.
+* View high and critical reports.
+* View overdue reports.
+* Open a complete case.
+* View citizen-submitted evidence.
+* View AI classification.
+* View AI confidence.
+* View recommended priority.
+* View sensitive-location warnings.
+* View suspected duplicate reports.
+* Assign a report to an internal team or responsible person.
+* Change the case status.
+* Request additional information.
+* Contact or request verification from the citizen.
+* Upload investigation evidence.
+* Upload resolution evidence.
+* Mark the issue as resolved.
+* Add internal notes.
+* Add public-facing updates.
+* Review similar reports.
+* See incident clusters.
+* See relevant area trends.
+* See analytics for their organization.
+
+Authority statuses should support a clear lifecycle such as:
+
+Submitted
+Under Review
+Verified
+Assigned
+In Progress
+Awaiting Citizen
+Resolved
+Rejected
+Escalated
+Closed
+
+Do not allow authorities to silently delete citizen reports. Preserve an auditable history.
+
+3. Administrator
+
+The administrator is responsible for the complete platform.
+
+Administrators should be able to:
+
+* Manage citizens.
+* Manage authority organizations.
+* Onboard new authorities.
+* Add authority users.
+* Disable users.
+* Review suspicious or disputed reports.
+* Review confirmed false reports.
+* Manage issue categories.
+* Manage authority routing rules.
+* Manage sensitive-location categories.
+* Manage sensitive-location records.
+* Configure priority rules.
+* Configure escalation rules.
+* Configure SLA values.
+* Review system-wide incidents.
+* Review authority performance.
+* Override AI decisions where required.
+* Review audit history.
+* Manage system configuration.
+
+The administrator should be the human oversight layer for sensitive decisions. AI should recommend and assist. AI should not autonomously punish a citizen, permanently reject a citizen’s report, or make irreversible legal decisions.
+
+CORE AI CAPABILITIES
+
+The AI system must perform the following major functions.
+
+1. Report understanding and classification
+
+Analyze text, voice transcripts, photographs, and video descriptions or extracted visual information where supported.
+
+Classify the report into configurable civic issue categories. The initial categories should include:
+
+* Water leakage
+* Burst water line
+* Water outage
+* Low water pressure
+* Sewage overflow
+* Blocked drain
+* Open manhole
+* Garbage accumulation
+* Uncollected waste
+* Illegal dumping
+* Construction waste
+* Road damage
+* Pothole
+* Road flooding
+* Footpath damage
+* Footpath encroachment
+* Streetlight failure
+* Traffic sign damage
+* Public infrastructure damage
+* Environmental pollution
+* Burning waste
+* Other
+
+Do not assume the category list is permanent. Store issue categories as configurable data.
+
+The AI should produce structured output rather than only natural-language text. At minimum, the internal AI result should contain:
+
+issueCategory
+issueDescription
+severityAssessment
+locationInformation
+duration
+affectedArea
+potentialHazards
+recommendedAuthority
+authorityConfidence
+issueConfidence
+priorityRecommendation
+sensitiveLocationMatch
+authenticityAssessment
+duplicateLikelihood
+recommendedQuestions
+complaintSummary
+
+Use strong schema validation for AI responses. Never trust free-form AI output directly in business logic.
+
+2. Authority routing
+
+The system must determine which authority is responsible for the reported issue.
+
+Do not rely exclusively on an LLM to decide this.
+
+Create a configurable routing layer that combines:
+
+* Issue category
+* Geographic service area
+* Authority responsibility
+* Location
+* Existing routing rules
+* AI classification
+* Administrative overrides
+
+The AI should interpret the messy citizen input. The routing engine should apply deterministic rules and configured authority ownership.
+
+The system should be able to explain why an authority was selected.
+
+For example:
+
+“Recommended authority: KW&SC. Reason: the report indicates sewage overflow and drainage-related infrastructure.”
+
+Display an authority confidence score, but do not present confidence as mathematical certainty.
+
+3. AI priority and severity engine
+
+Every report must receive a priority classification:
+
+Low
+Medium
+High
+Critical
+
+The priority must not be based solely on the LLM’s opinion.
+
+Use a combined decision model that considers:
+
+* Type of issue
+* Severity
+* Potential danger
+* Public health risk
+* Duration
+* Estimated affected population
+* Road or infrastructure importance
+* Proximity to sensitive locations
+* Number of related citizen reports
+* Evidence quality
+* Potential escalation risk
+
+Use a deterministic rules layer to adjust AI recommendations.
+
+For example:
+
+Base severity: High
+Nearby hospital: Priority increase
+Major road affected: Priority increase
+Many citizens affected: Priority increase
+Long duration: Priority increase
+
+Final result: Critical
+
+The system must show the primary factors that influenced the priority decision.
+
+4. Sensitive location detection
+
+Create a dedicated sensitive-location system.
+
+Sensitive locations should include configurable categories such as:
+
+* Hospitals
+* Clinics
+* Emergency facilities
+* Schools
+* Universities
+* Day-care facilities
+* Old-age homes
+* Orphanages
+* Special-needs facilities
+* Public transport hubs
+* Major markets
+* Major public gathering locations
+* Other locations defined by administrators
+
+For every civic report, evaluate whether the reported issue is near a sensitive location.
+
+Use actual geographic distance where reliable coordinates are available.
+
+Do not rely only on distance.
+
+The relevance of the sensitive location should consider:
+
+* Distance
+* Issue type
+* Potential spread or impact
+* Direction of the problem where available
+* Facility type
+* Expected number of affected people
+
+For example, a sewer overflow 200 metres from a hospital may be more significant than a minor pavement defect 50 metres away.
+
+The result should include:
+
+sensitiveLocationDetected
+sensitiveLocationType
+sensitiveLocationName
+distance
+relevance
+impactAssessment
+priorityAdjustment
+
+If no sensitive location exists, explicitly return that none was detected.
+
+5. Authenticity and false-report detection
+
+Create an AI-assisted report authenticity system.
+
+Do not allow the AI to make a final accusation that a citizen has submitted a fake report.
+
+Possible states should include:
+
+Unverified
+Likely Genuine
+Needs Verification
+Suspicious
+Confirmed False
+
+Evaluate signals such as:
+
+* Image/report mismatch
+* Duplicate image
+* Reused evidence
+* Location mismatch
+* Description/location inconsistency
+* Repeated suspicious behavior
+* Contradictory evidence
+* Repeated confirmed false reports
+* Evidence that the image or video may not correspond to the current incident
+
+Use an authenticity risk score to identify cases requiring manual verification.
+
+Example:
+
+Authenticity Risk: 81/100
+Reason: Evidence appears inconsistent with the reported location.
+
+Do not automatically penalize the citizen solely because the AI produces a high risk score.
+
+6. Human verification workflow
+
+When a report requires verification, create a workflow where an authority or administrator can contact the citizen.
+
+Capture:
+
+* Verification requested
+* Contact attempt
+* Contact result
+* Citizen response
+* Verification notes
+* Verifying person
+* Verification time
+
+Possible outcomes:
+
+Citizen confirmed issue
+Citizen says issue no longer exists
+Citizen reports incorrect details
+Unable to contact
+Potentially malicious report
+Other
+
+Only authorized staff should be able to mark a report as confirmed false.
+
+7. False-report penalty workflow
+
+The product should support a future penalty/challan mechanism, but it must be designed with due process.
+
+Never automatically issue a penalty solely because an AI model classified something as false.
+
+The workflow should be:
+
+Suspicious report
+→ Human verification
+→ Evidence review
+→ Citizen clarification
+→ Admin review where appropriate
+→ Confirmed false or malicious
+→ Appeal opportunity
+→ Authorized decision
+→ Penalty or account action according to configured policy
+
+The platform should support configurable consequences such as:
+
+Warning
+Temporary restriction
+Escalation to administrator
+Penalty/challan reference
+Suspension
+
+Do not assume the legal amount or legal authority for a challan. These must be configurable and authority-dependent.
+
+8. Duplicate report and incident clustering
+
+This is one of the most important product capabilities.
+
+The platform must detect when multiple citizen reports are likely describing the same real-world civic incident.
+
+Compare:
+
+* Location
+* Time
+* Issue type
+* Text similarity
+* Photo similarity
+* Video similarity
+* Nearby coordinates
+* Physical characteristics
+* Landmarks
+
+Example:
+
+Citizen A: sewage overflow
+Citizen B: bad smell
+Citizen C: flooded road
+Citizen D: uploads photo
+
+The AI should detect that these may represent one underlying incident.
+
+Create an incident such as:
+
+Incident:
+Sewage overflow at location X
+
+Citizen reports:
+23
+
+Photos:
+14
+
+Videos:
+3
+
+Authority:
+KW&SC
+
+Priority:
+Critical
+
+Do not simply merge records without retaining the individual citizen reports. Preserve each original report and associate it with the shared incident.
+
+9. Civic incident intelligence
+
+The system should aggregate reports into city-level insights.
+
+Authorities and administrators should be able to see:
+
+* Active incidents
+* High-priority incidents
+* Critical incidents
+* Hotspots
+* Recurring issues
+* Issue trends
+* Geographic clusters
+* Unresolved incidents
+* Overdue incidents
+* Report volumes
+* Resolution times
+* Recurrence rates
+* Areas with repeated civic problems
+
+Create a map-based civic intelligence view where possible.
+
+10. Neighborhood insights
+
+Allow the system to summarize civic conditions for an area.
+
+Example:
+
+Area: Gulshan-e-Iqbal
+
+Sewage incidents: 51
+Garbage incidents: 37
+Road issues: 22
+Water issues: 16
+
+Most common issue:
+Sewage
+
+Open critical incidents:
+4
+
+Recurring incidents:
+7
+
+Do not fabricate live statistics. For the prototype, clearly label demo or simulated data.
+
+11. Civic health score
+
+Create an optional neighborhood-level civic score based on actual platform data.
+
+Potential dimensions:
+
+* Number of active incidents
+* Severity
+* Resolution time
+* Recurrence
+* Unresolved cases
+* Category distribution
+
+Keep the scoring methodology transparent.
+
+Do not present it as an official government rating.
+
+12. Complaint generation
+
+Once the issue is understood and routed, generate a professionally formatted complaint.
+
+The generated complaint should contain:
+
+* Recipient authority
+* Subject
+* Location
+* Issue description
+* Date/time
+* Severity
+* Impact
+* Citizen evidence reference
+* Requested action
+* Optional additional context
+
+Support:
+
+English
+Urdu
+Roman Urdu where appropriate
+
+The complaint should sound professional and concise. Do not invent facts that are not present in the original report or verified data.
+
+13. Complaint quality validation
+
+Before submission, validate whether the report contains enough information.
+
+Check:
+
+* Issue type
+* Location
+* Evidence
+* Description
+* Authority
+* Severity
+* Potential impact
+
+If something important is missing, ask a targeted question rather than showing a long form.
+
+Provide a report quality score as an assistive indicator.
+
+14. Resolution verification
+
+When an authority marks a case as resolved, require resolution evidence where appropriate.
+
+The evidence can include:
+
+* Photo
+* Video
+* Resolution notes
+* Work order reference
+
+Use AI to compare original evidence and resolution evidence when visual evidence exists.
+
+Example:
+
+Original:
+Open manhole
+
+Resolution:
+New manhole cover visible
+
+AI assessment:
+Likely resolved
+
+Then request citizen confirmation.
+
+Citizen options:
+
+Issue resolved
+Issue still present
+Partially resolved
+Different issue remains
+
+If the citizen rejects the resolution, reopen or escalate the incident according to configured rules.
+
+15. Before-and-after verification
+
+Provide a dedicated view for:
+
+Original evidence
+Authority resolution evidence
+AI comparison
+Citizen confirmation
+
+Do not claim certainty when the visual comparison is ambiguous.
+
+Use statuses such as:
+
+Resolution likely confirmed
+Resolution partially confirmed
+Resolution unclear
+Resolution disputed
+
+16. Escalation
+
+If a report remains unresolved beyond its configured SLA:
+
+* Mark as overdue
+* Notify responsible authority
+* Notify higher-level staff where configured
+* Allow citizen follow-up
+* Generate an escalation complaint
+* Preserve the original case history
+
+The system should make escalation easy without creating duplicate incidents.
+
+17. Authority dashboard analytics
+
+Authorities should see:
+
+* Total reports
+* New reports
+* Critical reports
+* Assigned reports
+* Unassigned reports
+* In-progress reports
+* Resolved reports
+* Overdue reports
+* Average acknowledgement time
+* Average resolution time
+* Recurring incidents
+* Geographic hotspots
+* Category trends
+
+18. Administrator analytics
+
+Administrators should see cross-authority statistics:
+
+* Total citizens
+* Total authorities
+* Total reports
+* Total incidents
+* Open incidents
+* Critical incidents
+* Suspicious reports
+* Confirmed false reports
+* Resolution rates
+* Overdue cases
+* Authority performance
+* Issue category trends
+* Geographic hotspots
+* Sensitive-location incidents
+
+Do not create artificial performance rankings unless clearly based on data.
+
+19. Water tanker transparency module
+
+The platform should support a future civic module for water tanker price transparency.
+
+The user can specify:
+
+* Area
+* Tanker size
+* Required time
+* Quoted price
+
+The platform can compare the price against configured or community-reported historical data.
+
+Important:
+Do not represent community estimates as official government prices.
+
+Show information such as:
+
+Observed community range
+Historical range
+Current reported quote
+Difference from expected range
+
+20. Ask Karachi / Civic AI Assistant
+
+Include a conversational assistant that can answer civic questions such as:
+
+Who handles this type of issue?
+How do I report this?
+Has this issue already been reported nearby?
+What is the status of my complaint?
+What civic incidents are active in my area?
+Why was this authority selected?
+Why was this case marked critical?
+
+The assistant must use actual platform data where the question depends on system information.
+
+Do not allow the assistant to invent case information.
+
+SECURITY AND PRIVACY
+
+Treat CNIC as sensitive personal information.
+
+Do not unnecessarily expose CNIC numbers in dashboards or case listings.
+
+Use role-based authorization.
+
+Citizens can access only their own reports.
+
+Authority users can access reports according to organization and permissions.
+
+Administrators can access broader data according to their privileges.
+
+Protect phone numbers, email addresses, and identity information.
+
+Keep an audit trail for important actions.
+
+Every important change should record:
+
+Who changed it
+What changed
+When it changed
+Previous value where relevant
+New value where relevant
+
+AI should never be treated as an authority that bypasses access control.
+
+AI outputs must always be validated before entering important business workflows.
+
+IMPORTANT PRODUCT PRINCIPLES
+
+The system should follow these principles:
+
+AI recommends, rules validate, humans oversee.
+
+Do not allow AI to make irreversible legal or punitive decisions automatically.
+
+Do not invent missing information.
+
+Do not fabricate official authority integrations.
+
+Do not pretend a complaint has actually been submitted to a government organization unless a real integration exists.
+
+When integration is mocked, clearly represent it as a demonstration.
+
+Build the system so that real authority integrations can be added later.
+
+UX REQUIREMENTS
+
+The application should feel like a modern civic platform, not a generic AI chatbot.
+
+The primary citizen action should be obvious.
+
+The reporting workflow should be extremely short.
+
+Use clean dashboards and cards.
+
+Use clear status labels.
+
+Show why the AI made important decisions.
+
+Show issue classification, authority, priority, sensitive-location detection, and authenticity assessment in a transparent way.
+
+The citizen should always understand:
+
+What happened
+Who will handle it
+How urgent it is
+What happens next
+
+The authority should always understand:
+
+What happened
+Where it happened
+How serious it is
+How many people reported it
+Whether a sensitive location is affected
+Whether the report requires verification
+What action is expected
+Whether the problem has actually been resolved
+
+The administrator should always understand:
+
+Who is using the platform
+Which authorities are onboarded
+Where incidents are happening
+Where suspicious activity exists
+How the platform is performing
+Where AI decisions may require human intervention
+
+HACKATHON PRIORITY
+
+Because this is a prototype, prioritize the following end-to-end flow above all other functionality:
+
+Citizen submits a photo, voice note, or typed report.
+
+AI interprets the report.
+
+AI classifies the civic issue.
+
+The system determines the location.
+
+The system detects nearby sensitive locations.
+
+The system calculates priority.
+
+The system determines the appropriate authority.
+
+The system evaluates authenticity risk.
+
+The system creates a structured civic case.
+
+The AI generates a professional complaint.
+
+The complaint appears in the citizen dashboard.
+
+The relevant authority receives the case.
+
+The authority can accept, assign, update, and resolve it.
+
+The authority uploads resolution evidence.
+
+The AI evaluates the resolution evidence.
+
+The citizen confirms or disputes the resolution.
+
+The system preserves the complete case history.
+
+The platform can detect duplicate reports and group them into one civic incident.
+
+The administrator can view the overall system and manage citizens, authorities, suspicious reports, and configuration.
+
+For the hackathon demonstration, prepare realistic seeded demo data so that the dashboard already contains several incidents, multiple citizens, multiple authorities, duplicate reports, high-priority cases, sensitive-location cases, and a suspicious report.
+
+Create at least one highly compelling demonstration scenario where:
+
+A citizen submits a photo or voice report describing a sewage problem.
+
+The AI identifies sewage overflow.
+
+The location is determined.
+
+A school or hospital is detected nearby.
+
+The priority is automatically increased because of the sensitive location.
+
+The appropriate authority is selected.
+
+A professional complaint is generated.
+
+Multiple other reports are detected as belonging to the same incident.
+
+The authority dashboard shows one consolidated civic incident instead of many unrelated complaints.
+
+The authority marks the issue resolved and uploads evidence.
+
+The AI checks the resolution evidence.
+
+The citizen confirms or disputes the resolution.
+
+Also create a second demonstration scenario involving a suspicious or potentially false report.
+
+Do not automatically punish the citizen. Show the verification workflow, contact verification, admin review, and the possibility of a future penalty according to configurable policy.
+
+TECHNICAL EXPECTATIONS
+
+Use a clean, maintainable architecture appropriate for a hackathon MVP.
+
+Prefer simple, reliable solutions over unnecessary complexity.
+
+Use typed models and validation.
+
+Keep AI prompts and structured schemas centralized and easy to modify.
+
+Keep routing rules, priority rules, sensitive-location configuration, and authority configuration data-driven rather than hard-coded wherever practical.
+
+Use mock services for external authority integrations where necessary, but isolate them behind interfaces so they can later be replaced with real APIs.
+
+Use asynchronous processing for AI-heavy operations where appropriate, but do not introduce infrastructure that is unnecessary for the prototype.
+
+Handle loading, failure, timeout, and invalid AI-response states gracefully.
+
+Never allow malformed AI output to crash the application.
+
+Provide useful fallback behavior when AI services are unavailable.
+
+Use realistic seeded data for the demonstration.
+
+IMPLEMENTATION PROCESS
+
+Before coding:
+
+1. Inspect the existing project.
+2. Identify the existing framework, architecture, authentication, database, and dependencies.
+3. Explain your proposed implementation approach.
+4. Identify anything you would change from the existing architecture.
+5. Ask permission before making major or destructive changes.
+
+Then implement incrementally.
+
+After each major implementation stage:
+
+* Verify that the application still builds.
+* Test the relevant workflow.
+* Fix obvious errors.
+* Do not move forward while knowingly leaving a broken core flow.
+
+Prioritize these implementation milestones:
+
+Milestone 1:
+Authentication and three-role access control.
+
+Milestone 2:
+Citizen report submission.
+
+Milestone 3:
+AI report analysis and structured output.
+
+Milestone 4:
+Authority routing.
+
+Milestone 5:
+Priority and sensitive-location detection.
+
+Milestone 6:
+Complaint generation.
+
+Milestone 7:
+Authority case management.
+
+Milestone 8:
+Resolution and citizen confirmation.
+
+Milestone 9:
+Duplicate incident clustering.
+
+Milestone 10:
+Admin dashboard and moderation workflow.
+
+Milestone 11:
+Seeded demo scenarios and polished presentation flow.
+
+When generating code, favor working implementations over placeholder comments. Do not leave core functionality described only as TODOs.
+
+Do not build unnecessary features before the complete end-to-end citizen-to-authority-to-resolution flow works.
+
+DEMO SUCCESS CRITERIA
+
+The finished prototype should allow a judge to understand the product within a few minutes.
+
+The ideal demonstration should prove:
+
+1. A citizen can describe a problem naturally.
+2. AI understands the problem.
+3. AI determines the responsible authority.
+4. AI determines urgency.
+5. Sensitive location detection can increase urgency.
+6. AI evaluates whether the report appears suspicious.
+7. AI generates a professional complaint.
+8. Multiple citizen reports can become one civic incident.
+9. The authority can manage the incident.
+10. Resolution can be supported with evidence.
+11. AI can assist with resolution verification.
+12. The citizen can confirm or challenge resolution.
+13. Administrators can control users, authorities, routing, sensitive zones, and moderation.
+14. All major actions are auditable.
+
+The final product should communicate this central idea:
+
+“The citizen should not need to understand the government structure. They only need to explain what is wrong. The platform understands the problem, determines who is responsible, decides how urgently it should be handled, verifies the report, tracks the response, and turns individual complaints into a real picture of what is happening across the city.”
+
+Do not optimize for the number of screens or features. Optimize for the quality of the end-to-end experience, the credibility of the AI decisions, the clarity of the three-role workflows, and the strength of the live demonstration.
