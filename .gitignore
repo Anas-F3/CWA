@@ -6,4 +6,4 @@ credentials.json
 node_modules/
 
 # SQLite complaint database (generated at runtime)
-data/
+
