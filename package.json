@@ -2,9 +2,16 @@
   "name": "city-around-you",
   "version": "1.0.0",
   "private": true,
-  "description": "The City Around You — Karachi civic intelligence hackathon MVP",
+  "description": "The City Around You — Karachi civic intelligence. Multimodal (text / photo / voice / video) citizen complaint intake with AI triage and authority routing.",
   "scripts": {
     "dev": "node server.js",
     "start": "node server.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.125.0",
+    "@google/genai": "^2.22.0"
+  },
+  "engines": {
+    "node": ">=22.5.0"
   }
 }
