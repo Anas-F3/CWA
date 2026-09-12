@@ -130,19 +130,61 @@ async function signOut() {
 /* ================================================================== */
 
 function navItems() {
-  const citizen = [{ icon:"⌂", label:"Overview", view:"overview" }, { icon:"＋", label:"Report an issue", view:"report" }, { icon:"◷", label:"My reports", view:"reports" }, { icon:"♧", label:"Nearby incidents", view:"nearby" }];
+  const citizen = [{ icon:"home", label:"Overview", view:"overview" }, { icon:"plus", label:"Report an issue", view:"report" }, { icon:"clock", label:"My reports", view:"reports" }, { icon:"pulse", label:"Nearby incidents", view:"nearby" }];
   const mine = (state.data?.assignedToMe || []).length;
-  const authority = [{ icon:"⌂", label:"Command center", view:"overview" }, { icon:"◈", label:"Assigned to me", view:"assigned", badge: mine ? String(mine) : "" }, { icon:"▣", label:"All cases", view:"cases" }, { icon:"⚠", label:"Critical queue", view:"critical" }, { icon:"◉", label:"Incident clusters", view:"clusters" }];
-  const admin = [{ icon:"⌂", label:"Platform overview", view:"overview" }, { icon:"♙", label:"People & access", view:"people" }, { icon:"⚙", label:"Routing & rules", view:"rules" }, { icon:"◌", label:"Audit history", view:"audit" }];
+  const authority = [{ icon:"home", label:"Command center", view:"overview" }, { icon:"bookmark", label:"Assigned to me", view:"assigned", badge: mine ? String(mine) : "" }, { icon:"inbox", label:"All cases", view:"cases" }, { icon:"alert", label:"Critical queue", view:"critical" }, { icon:"target", label:"Incident clusters", view:"clusters" }];
+  const admin = [{ icon:"home", label:"Platform overview", view:"overview" }, { icon:"users", label:"People & access", view:"people" }, { icon:"settings", label:"Routing & rules", view:"rules" }, { icon:"history", label:"Audit history", view:"audit" }];
   const groups = state.role === "citizen" ? [{ name:"YOUR CIVIC SPACE", items:citizen }] : state.role === "authority" ? [{ name:"OPERATIONS", items:authority }] : [{ name:"ADMINISTRATION", items:admin }];
-  $("#nav").innerHTML = groups.map((group) => `<div class="nav-label">${group.name}</div>${group.items.map((item) => `<button class="nav-item ${state.view === item.view ? "active" : ""}" data-view="${item.view}"><b>${item.icon}</b><span>${item.label}</span>${item.badge ? `<em>${item.badge}</em>` : ""}</button>`).join("")}`).join("");
+  $("#nav").innerHTML = groups.map((group) => `<div class="nav-label">${group.name}</div>${group.items.map((item) => `<button class="nav-item ${state.view === item.view ? "active" : ""}" data-view="${item.view}"><b>${icon(item.icon, 18)}</b><span>${item.label}</span>${item.badge ? `<em>${item.badge}</em>` : ""}</button>`).join("")}`).join("");
   $$(".nav-item").forEach((el) => el.addEventListener("click", () => navigate(el.dataset.view)));
 }
 
-function metricCard(label, value, icon, tone, note, neutral = false) { return `<div class="metric"><div class="metric-top"><span>${label}</span><span class="metric-icon" style="background:${tone}">${icon}</span></div><strong>${value}</strong><small class="${neutral ? "neutral" : ""}">${note}</small></div>`; }
+function metricCard(label, value, name, tone, note, neutral = false) { return `<div class="metric"><div class="metric-top"><span>${label}</span><span class="metric-icon ${tone}">${icon(name, 18)}</span></div><strong>${value}</strong><small class="${neutral ? "neutral" : ""}">${note}</small></div>`; }
 function pageHeading(eyebrow, title, subtitle, action = "") { return `<div class="page-heading"><div><div class="eyebrow">${eyebrow}</div><h1>${title}</h1><p>${subtitle}</p></div>${action}</div>`; }
 
-const CHANNEL_ICON = { text: "▤", image: "▧", audio: "◉", video: "▶" };
+/* ------------------------------------------------------------------ */
+/* Icons                                                               */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Inline stroke icons on a 24px grid, drawn in currentColor. Replaces the
+ * dingbat glyphs the prototype used, which rendered differently on every
+ * platform and never matched the type.
+ */
+const ICONS = {
+  home: '<path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V20a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1V9.5"/><path d="M9.5 21v-6h5v6"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
+  clock: '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',
+  pulse: '<path d="M3 12h4l2.5-6 5 12 2.5-6h4"/>',
+  inbox: '<rect x="3.5" y="4.5" width="17" height="15" rx="2"/><path d="M3.5 13.5h4l1.5 2.5h6l1.5-2.5h4"/>',
+  alert: '<path d="M12 4.5 21 19.5H3L12 4.5Z"/><path d="M12 10v4"/><circle cx="12" cy="17" r=".6" fill="currentColor" stroke="none"/>',
+  target: '<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r=".8" fill="currentColor" stroke="none"/>',
+  users: '<circle cx="9" cy="8.5" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><path d="M16.5 5.4a3.5 3.5 0 0 1 0 6.2"/><path d="M18 14.4c2.1.7 3.5 2.5 3.5 5.1"/>',
+  settings: '<circle cx="12" cy="12" r="3.2"/><path d="M19.4 14.5a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1v.3a2 2 0 1 1-4 0v-.2a1.6 1.6 0 0 0-2.8-1.1l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0-1.1-2.7h-.3a2 2 0 1 1 0-4h.2a1.6 1.6 0 0 0 1.1-2.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3h.1A1.6 1.6 0 0 0 10 3.3V3a2 2 0 1 1 4 0v.2a1.6 1.6 0 0 0 2.7 1.1l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0 1.1 2.7h.3a2 2 0 1 1 0 4h-.2a1.6 1.6 0 0 0-1.3 1.1Z"/>',
+  history: '<path d="M3.5 12a8.5 8.5 0 1 0 2.6-6.1"/><path d="M3.5 4.5V10H9"/><path d="M12 8v4.5l3 1.8"/>',
+  bookmark: '<path d="M6.5 3.5h11a1 1 0 0 1 1 1v16l-6.5-4-6.5 4v-16a1 1 0 0 1 1-1Z"/>',
+  crosshair: '<circle cx="12" cy="12" r="8"/><path d="M12 1.5v4M12 18.5v4M1.5 12h4M18.5 12h4"/>',
+  check: '<path d="M4.5 12.5 9.5 17.5 19.5 7"/>',
+  text: '<path d="M5.5 3.5h9l5 5v12a1 1 0 0 1-1 1h-13a1 1 0 0 1-1-1v-16a1 1 0 0 1 1-1Z"/><path d="M14 3.5v5h5"/><path d="M8.5 13h7M8.5 16.5h5"/>',
+  image: '<rect x="3.5" y="4.5" width="17" height="15" rx="2"/><circle cx="8.5" cy="9.5" r="1.6"/><path d="m4 17 4.8-4.3a1.5 1.5 0 0 1 2 0L16 17.5"/><path d="m13.5 14 2-1.7a1.5 1.5 0 0 1 2 0l2.5 2.2"/>',
+  mic: '<rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0"/><path d="M12 17.5V21"/>',
+  video: '<rect x="2.5" y="5.5" width="13" height="13" rx="2"/><path d="m15.5 10 6-3.2v10.4l-6-3.2Z"/>',
+  phone: '<path d="M7 3.5 9.5 4l1.2 3.4-1.8 1.6a11 11 0 0 0 5.1 5.1l1.6-1.8L19 13.5l.5 2.5a2 2 0 0 1-2 2.3A14.5 14.5 0 0 1 4.2 5.5a2 2 0 0 1 2.3-2Z"/>',
+  mail: '<rect x="2.5" y="5" width="19" height="14" rx="2"/><path d="m3 7 8.4 5.6a1 1 0 0 0 1.2 0L21 7"/>',
+  sparkle: '<path d="m12 3 1.9 5.4L19.5 10l-5.6 1.6L12 17l-1.9-5.4L4.5 10l5.6-1.6L12 3Z"/>',
+  power: '<path d="M12 3.5v8"/><path d="M7 6.4a8 8 0 1 0 10 0"/>',
+  shield: '<path d="M12 2.8 20 6v6c0 5-3.4 8-8 9.2C7.4 20 4 17 4 12V6l8-3.2Z"/><path d="m9 12 2 2 4-4"/>',
+  send: '<path d="M21 3 10.5 13.5"/><path d="M21 3 14.5 21l-4-7.5L3 9.5 21 3Z"/>',
+  message: '<path d="M20.5 12a7.5 7.5 0 0 1-10.9 6.7L4 20.5l1.8-5.6A7.5 7.5 0 1 1 20.5 12Z"/>',
+  user: '<circle cx="12" cy="8" r="4"/><path d="M4.5 20.5c0-4 3.4-6.5 7.5-6.5s7.5 2.5 7.5 6.5"/>',
+  pin: '<path d="M12 21s7-5.4 7-11a7 7 0 1 0-14 0c0 5.6 7 11 7 11Z"/><circle cx="12" cy="10" r="2.6"/>',
+  bell: '<path d="M18 9a6 6 0 1 0-12 0c0 5-2 6.5-2 6.5h16S18 14 18 9Z"/><path d="M10.3 20a2 2 0 0 0 3.4 0"/>',
+};
+
+const icon = (name, size = 20) =>
+  `<svg class="icon" viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name] || ""}</svg>`;
+
+const CHANNEL_ICON = { text: "text", image: "image", audio: "mic", video: "video" };
 
 /** What the active AI engine can actually accept. */
 const caps = () => state.config?.capabilities || { text: true, image: true, audio: "transcript", video: false };
@@ -150,7 +192,7 @@ const audioIsNative = () => caps().audio === "native";
 const videoSupported = () => Boolean(caps().video);
 
 function reportRow(report, action = "Open case") {
-  const evidence = report.reports > 1 ? `♧ ${report.reports} reports` : `${CHANNEL_ICON[report.channel] || "▤"} ${escapeHtml(report.source || "Report")}`;
+  const evidence = report.reports > 1 ? `${icon("pulse", 13)} ${report.reports} reports` : `${icon(CHANNEL_ICON[report.channel] || "text", 13)} ${escapeHtml(report.source || "Report")}`;
   return `<div class="report-row"><div><h3>${escapeHtml(report.title)}</h3><p>${escapeHtml(report.location || "Location not specified")} · ${timeAgo(report.createdAt)}</p><div class="report-meta"><span class="tag ${priorityClass(report.priority)}">${escapeHtml(report.priority)}</span><span class="tag status">${escapeHtml(report.status)}</span><span class="meta-dim">${evidence}</span></div></div><div class="report-right"><button class="action-link" data-report="${report.id}">${action} →</button><small>${escapeHtml(report.id)}</small></div></div>`;
 }
 
@@ -164,14 +206,14 @@ function overview() {
 
   if (state.role === "citizen") {
     const mine = state.data.myReports || [];
-    return `${pageHeading("Karachi civic intelligence", `Good morning, ${escapeHtml(state.user.name.split(" ")[0])}`, "Report an issue in whichever way is easiest — type it, photograph it, or just say it.", `<button class="primary-btn" data-action="new-report">＋ Report an issue</button>`)}
+    return `${pageHeading("Karachi civic intelligence", `Good morning, ${escapeHtml(state.user.name.split(" ")[0])}`, "Report an issue in whichever way is easiest — type it, photograph it, or just say it.", `<button class="primary-btn" data-action="new-report">${icon("plus", 16)} Report an issue</button>`)}
     <div class="channel-promo ${videoSupported() ? "four" : ""}">
-      <button class="channel-promo-card" data-new-channel="text"><b>▤</b><strong>Write it</strong><small>English, Urdu or Roman Urdu</small></button>
-      <button class="channel-promo-card" data-new-channel="image"><b>▧</b><strong>Photograph it</strong><small>AI reads the photo itself</small></button>
-      <button class="channel-promo-card" data-new-channel="audio"><b>◉</b><strong>Say it</strong><small>${audioIsNative() ? "AI listens to your voice note" : "Record a voice note"}</small></button>
-      ${videoSupported() ? `<button class="channel-promo-card" data-new-channel="video"><b>▶</b><strong>Film it</strong><small>AI watches the clip</small></button>` : ""}
+      <button class="channel-promo-card" data-new-channel="text"><b>${icon("text", 22)}</b><strong>Write it</strong><small>English, Urdu or Roman Urdu</small></button>
+      <button class="channel-promo-card" data-new-channel="image"><b>${icon("image", 22)}</b><strong>Photograph it</strong><small>AI reads the photo itself</small></button>
+      <button class="channel-promo-card" data-new-channel="audio"><b>${icon("mic", 22)}</b><strong>Say it</strong><small>${audioIsNative() ? "AI listens to your voice note" : "Record a voice note"}</small></button>
+      ${videoSupported() ? `<button class="channel-promo-card" data-new-channel="video"><b>${icon("video", 22)}</b><strong>Film it</strong><small>AI watches the clip</small></button>` : ""}
     </div>
-    <div class="metrics">${metricCard("My open reports", mine.filter((r) => !["Resolved","Closed"].includes(r.status)).length, "◷", "#e6f4ef", "Tracked to closure")}${metricCard("Nearby incidents", m.open, "⌖", "#fff0df", `${m.critical} critical`)}${metricCard("Resolved in your area", m.total - m.open, "✓", "#e6f0fb", `${m.resolutionRate}% resolution rate`)}${metricCard("Reports on record", m.total, "♧", "#f8e9ed", "Stored in the civic database")}</div>
+    <div class="metrics">${metricCard("My open reports", mine.filter((r) => !["Resolved","Closed"].includes(r.status)).length, "clock", "teal", "Tracked to closure")}${metricCard("Nearby incidents", m.open, "crosshair", "amber", `${m.critical} critical`)}${metricCard("Resolved in your area", m.total - m.open, "check", "blue", `${m.resolutionRate}% resolution rate`)}${metricCard("Reports on record", m.total, "pulse", "rose", "Stored in the civic database")}</div>
     <div class="grid-2"><section class="card"><div class="card-head"><div><h2>Your active reports</h2><p>Keep track of what happens next</p></div><button class="card-link" data-view="reports">View all →</button></div><div class="report-list">${mine.slice(0,3).map((r) => reportRow(r, "View report")).join("") || emptyState("You haven’t filed a report yet.")}</div></section><section class="card side-card"><div class="card-head"><div><h2>Gulshan-e-Iqbal</h2><p>Area civic pulse</p></div><span class="tag high">Fair</span></div><div class="map"><i class="map-pin a"></i><i class="map-pin b"></i><i class="map-pin c"></i><i class="map-pin d"></i></div><div class="map-legend"><span><i style="background:#d85b58"></i> Critical</span><span><i style="background:#e98259"></i> High</span><span><i style="background:#087f78"></i> Resolved</span></div>${channelBreakdown(m)}</section></div>`;
   }
 
@@ -179,22 +221,22 @@ function overview() {
     // The server already scoped `reports` to this account's authority.
     const org = myAuthority();
     const name = org ? org.name : "your authority";
-    return `${pageHeading(`${escapeHtml(name)} operations`, "Command center", `Every case routed to ${escapeHtml(org ? org.fullName : "your organisation")}.`, `<button class="secondary-btn" data-view="cases">▣ All cases</button>`)}
-    <div class="metrics">${metricCard("Cases routed to you", reports.length, "▣", "#e6f4ef", "Your organisation only")}${metricCard("Critical queue", reports.filter((r) => r.priority === "Critical").length, "⚠", "#fbe5e3", "Need field action")}${metricCard("In progress", reports.filter((r) => ["In Progress","Assigned","Under Review"].includes(r.status)).length, "◌", "#fff0df", "Active field work", true)}${metricCard("Resolution rate", `${m.resolutionRate}%`, "✓", "#e6f0fb", "Across your cases")}</div>
+    return `${pageHeading(`${escapeHtml(name)} operations`, "Command center", `Every case routed to ${escapeHtml(org ? org.fullName : "your organisation")}.`, `<button class="secondary-btn" data-view="cases">${icon("inbox", 16)} All cases</button>`)}
+    <div class="metrics">${metricCard("Cases routed to you", reports.length, "inbox", "teal", "Your organisation only")}${metricCard("Critical queue", reports.filter((r) => r.priority === "Critical").length, "alert", "rose", "Need field action")}${metricCard("In progress", reports.filter((r) => ["In Progress","Assigned","Under Review"].includes(r.status)).length, "history", "amber", "Active field work", true)}${metricCard("Resolution rate", `${m.resolutionRate}%`, "check", "blue", "Across your cases")}</div>
     <div class="grid-2"><section class="card"><div class="card-head"><div><h2>Needs your attention</h2><p>Priority-sorted reports for ${escapeHtml(name)}</p></div><button class="card-link" data-view="cases">All cases →</button></div><div class="report-list">${reports.slice(0,4).map((r) => reportRow(r, "Open case")).join("") || emptyState(`No cases routed to ${name} yet.`)}</div></section><section class="card side-card"><div class="card-head"><div><h2>Live incident map</h2><p>${escapeHtml((org?.areas || []).slice(0, 2).join(", ") || "Service area")}</p></div></div><div class="map"><i class="map-pin a"></i><i class="map-pin b"></i><i class="map-pin c"></i><i class="map-pin d"></i></div>${channelBreakdown(m)}</section></div>`;
   }
 
   return `${pageHeading("Platform command center", "Karachi, in focus", "Human oversight for a city that works better.", `<button class="secondary-btn" data-view="audit">View audit history →</button>`)}
-    <div class="metrics">${metricCard("Citizens reporting", m.citizens, "♙", "#e6f4ef", "Distinct reporters")}${metricCard("Open incidents", m.open, "◌", "#fff0df", `Across ${state.data.authorities.length} authorities`)}${metricCard("Critical incidents", m.critical, "⚠", "#fbe5e3", "Escalated by AI + rules")}${metricCard("Resolution rate", `${m.resolutionRate}%`, "✓", "#e6f0fb", "Based on stored complaints")}</div>
+    <div class="metrics">${metricCard("Citizens reporting", m.citizens, "users", "teal", "Distinct reporters")}${metricCard("Open incidents", m.open, "history", "amber", `Across ${state.data.authorities.length} authorities`)}${metricCard("Critical incidents", m.critical, "alert", "rose", "Escalated by AI + rules")}${metricCard("Resolution rate", `${m.resolutionRate}%`, "check", "blue", "Based on stored complaints")}</div>
     <div class="admin-grid"><section class="card"><div class="card-head"><div><h2>Reports by category</h2><p>From the complaints database</p></div></div><div class="bar-chart">${categoryChart(m)}</div></section><section class="card"><div class="card-head"><div><h2>Intake channels</h2><p>How citizens are reporting</p></div></div>${channelBreakdown(m, true)}</section></div>`;
 }
 
 function channelBreakdown(m, expanded = false) {
   const total = Object.values(m.byChannel || {}).reduce((a, b) => a + b, 0) || 1;
-  const rows = [["text","Text","▤"],["image","Photo","▧"],["audio","Voice","◉"],["video","Video","▶"]]
-    .map(([key, label, icon]) => {
+  const rows = [["text","Text","text"],["image","Photo","image"],["audio","Voice","mic"],["video","Video","video"]]
+    .map(([key, label, glyph]) => {
       const count = m.byChannel?.[key] || 0;
-      return `<div class="channel-row"><span class="channel-icon">${icon}</span><div class="channel-bar-wrap"><div class="channel-bar-label"><strong>${label}</strong><small>${count}</small></div><div class="channel-bar"><i style="width:${Math.round((count / total) * 100)}%"></i></div></div></div>`;
+      return `<div class="channel-row"><span class="channel-icon">${icon(glyph, 15)}</span><div class="channel-bar-wrap"><div class="channel-bar-label"><strong>${label}</strong><small>${count}</small></div><div class="channel-bar"><i style="width:${Math.round((count / total) * 100)}%"></i></div></div></div>`;
     }).join("");
   return `<div class="channel-breakdown ${expanded ? "expanded" : ""}">${expanded ? "" : `<div class="channel-breakdown-title">Intake channels</div>`}${rows}</div>`;
 }
@@ -210,21 +252,21 @@ const emptyState = (message) => `<div class="empty-state">${escapeHtml(message)}
 
 function reportsPage() {
   const mine = state.data.myReports || [];
-  return `${pageHeading("Your civic record", "My reports", "Every report stays visible until the issue is truly closed.", `<button class="primary-btn" data-action="new-report">＋ New report</button>`)}<div class="notice"><strong>Privacy first.</strong> Your identity details are protected. Your CNIC is never displayed in your case list or shared with authorities unless a verified workflow requires it.</div><section class="card"><div class="card-head"><div><h2>Reports you filed</h2><p>${mine.length} report${mine.length === 1 ? "" : "s"} on your account</p></div></div><div class="report-list">${mine.map((r) => reportRow(r, "View report")).join("") || emptyState("No reports yet. Submit your first one.")}</div></section>`;
+  return `${pageHeading("Your civic record", "My reports", "Every report stays visible until the issue is truly closed.", `<button class="primary-btn" data-action="new-report">${icon("plus", 16)} New report</button>`)}<div class="notice"><strong>Privacy first.</strong> Your identity details are protected. Your CNIC is never displayed in your case list or shared with authorities unless a verified workflow requires it.</div><section class="card"><div class="card-head"><div><h2>Reports you filed</h2><p>${mine.length} report${mine.length === 1 ? "" : "s"} on your account</p></div></div><div class="report-list">${mine.map((r) => reportRow(r, "View report")).join("") || emptyState("No reports yet. Submit your first one.")}</div></section>`;
 }
 
 function assignedPage() {
   const mine = state.data.assignedToMe || [];
   const open = mine.filter((r) => !["Resolved", "Closed"].includes(r.status));
-  return `${pageHeading("Your workload", "Assigned to me", "Cases you personally are responsible for. The citizen can see your name and number on each of these.", `<button class="secondary-btn" data-view="cases">▣ All cases</button>`)}
-  <div class="metrics">${metricCard("Assigned to you", mine.length, "◈", "#e6f4ef", "Across all statuses")}${metricCard("Still open", open.length, "◌", "#fff0df", "Need your action", true)}${metricCard("Critical", mine.filter((r) => r.priority === "Critical").length, "⚠", "#fbe5e3", "Attend first")}${metricCard("Awaiting reply", mine.filter((r) => r.messages?.length && r.messages.at(-1).authorRole === "citizen").length, "✉", "#e6f0fb", "Citizen wrote last")}</div>
+  return `${pageHeading("Your workload", "Assigned to me", "Cases you personally are responsible for. The citizen can see your name and number on each of these.", `<button class="secondary-btn" data-view="cases">${icon("inbox", 16)} All cases</button>`)}
+  <div class="metrics">${metricCard("Assigned to you", mine.length, "bookmark", "teal", "Across all statuses")}${metricCard("Still open", open.length, "history", "amber", "Need your action", true)}${metricCard("Critical", mine.filter((r) => r.priority === "Critical").length, "alert", "rose", "Attend first")}${metricCard("Awaiting reply", mine.filter((r) => r.messages?.length && r.messages.at(-1).authorRole === "citizen").length, "mail", "blue", "Citizen wrote last")}</div>
   <section class="card"><div class="card-head"><div><h2>Your cases</h2><p>Ordered newest first</p></div></div><div class="report-list">${mine.map((r) => reportRow(r, "Open case")).join("") || emptyState("Nothing assigned to you yet.")}</div></section>`;
 }
 
 function casesPage(filter = "all") {
   const org = myAuthority();
   const list = state.data.reports.filter((r) => (filter === "critical" ? r.priority === "Critical" : true));
-  return `${pageHeading(`${escapeHtml(org ? org.name : "Authority")} operations`, filter === "critical" ? "Critical queue" : "All cases", "Prioritize the cases that need field action.", `<button class="secondary-btn" data-view="overview">← Command center</button>`)}<section class="card table-card"><table class="case-table"><thead><tr><th>Case</th><th>Location</th><th>Priority</th><th>Status</th><th>Reports</th><th></th></tr></thead><tbody>${list.map((r) => `<tr><td><div class="case-id">${r.id}</div><div class="case-title">${escapeHtml(r.title)}</div><div class="case-sub">${CHANNEL_ICON[r.channel] || "▤"} ${escapeHtml(r.source || "")}</div></td><td>${escapeHtml(r.location || "—")}<div class="case-sub">${r.sensitive ? `⚠ ${escapeHtml(r.sensitive.name || r.sensitive.type)}` : "No sensitive match"}</div></td><td><span class="tag ${priorityClass(r.priority)}">${r.priority}</span></td><td><span class="tag status">${r.status}</span></td><td>${r.reports}</td><td><button class="action-link" data-report="${r.id}">Open →</button></td></tr>`).join("") || `<tr><td colspan="6">${emptyState("Nothing in this queue.")}</td></tr>`}</tbody></table></section>`;
+  return `${pageHeading(`${escapeHtml(org ? org.name : "Authority")} operations`, filter === "critical" ? "Critical queue" : "All cases", "Prioritize the cases that need field action.", `<button class="secondary-btn" data-view="overview">← Command center</button>`)}<section class="card table-card"><table class="case-table"><thead><tr><th>Case</th><th>Location</th><th>Priority</th><th>Status</th><th>Reports</th><th></th></tr></thead><tbody>${list.map((r) => `<tr><td><div class="case-id">${r.id}</div><div class="case-title">${escapeHtml(r.title)}</div><div class="case-sub">${icon(CHANNEL_ICON[r.channel] || "text", 13)} ${escapeHtml(r.source || "")}</div></td><td>${escapeHtml(r.location || "—")}<div class="case-sub">${r.sensitive ? `${icon("alert", 12)} ${escapeHtml(r.sensitive.name || r.sensitive.type)}` : "No sensitive match"}</div></td><td><span class="tag ${priorityClass(r.priority)}">${r.priority}</span></td><td><span class="tag status">${r.status}</span></td><td>${r.reports}</td><td><button class="action-link" data-report="${r.id}">Open →</button></td></tr>`).join("") || `<tr><td colspan="6">${emptyState("Nothing in this queue.")}</td></tr>`}</tbody></table></section>`;
 }
 
 function adminPage(view) {
@@ -236,7 +278,7 @@ function adminPage(view) {
 }
 
 function nearbyPage() {
-  return `${pageHeading("Around you", "Nearby incidents", "See what is happening in Gulshan-e-Iqbal.", `<button class="secondary-btn" data-action="new-report">＋ Report something</button>`)}<div class="grid-2"><section class="card side-card"><div class="card-head"><div><h2>Gulshan-e-Iqbal civic pulse</h2><p>Updated from stored complaints</p></div></div><div class="map"><i class="map-pin a"></i><i class="map-pin b"></i><i class="map-pin c"></i><i class="map-pin d"></i></div>${channelBreakdown(state.data.metrics)}</section><section class="card"><div class="card-head"><div><h2>Active around you</h2><p>Within your selected area</p></div></div><div class="report-list">${state.data.reports.slice(0,5).map((r) => reportRow(r, "View details")).join("") || emptyState("Nothing reported nearby yet.")}</div></section></div>`;
+  return `${pageHeading("Around you", "Nearby incidents", "See what is happening in Gulshan-e-Iqbal.", `<button class="secondary-btn" data-action="new-report">${icon("plus", 16)} Report something</button>`)}<div class="grid-2"><section class="card side-card"><div class="card-head"><div><h2>Gulshan-e-Iqbal civic pulse</h2><p>Updated from stored complaints</p></div></div><div class="map"><i class="map-pin a"></i><i class="map-pin b"></i><i class="map-pin c"></i><i class="map-pin d"></i></div>${channelBreakdown(state.data.metrics)}</section><section class="card"><div class="card-head"><div><h2>Active around you</h2><p>Within your selected area</p></div></div><div class="report-list">${state.data.reports.slice(0,5).map((r) => reportRow(r, "View details")).join("") || emptyState("Nothing reported nearby yet.")}</div></section></div>`;
 }
 
 /* ================================================================== */
@@ -250,17 +292,17 @@ function reportForm() {
   const i = state.intake;
   const areas = state.config?.areas || ["Gulshan-e-Iqbal"];
   const aiBadge = state.config?.aiEnabled
-    ? `<span class="tag resolved">✦ ${escapeHtml(state.config.label)} · ${escapeHtml(state.config.model)}</span>`
+    ? `<span class="tag resolved">${icon("sparkle", 12)} ${escapeHtml(state.config.label)} · ${escapeHtml(state.config.model)}</span>`
     : `<span class="tag high">Offline keyword triage</span>`;
 
   return `${pageHeading("New civic report", "Tell us what’s wrong", "Choose whichever way is easiest. Civic AI will identify the issue and route it.", aiBadge)}
   <div class="report-layout">
     <section class="card form-card">
       <div class="channel-tabs ${videoSupported() ? "four" : ""}" role="tablist">
-        <button class="channel-tab ${i.channel === "text" ? "active" : ""}" data-channel="text" role="tab"><b>▤</b><span>Write it</span></button>
-        <button class="channel-tab ${i.channel === "image" ? "active" : ""}" data-channel="image" role="tab"><b>▧</b><span>Photo</span></button>
-        <button class="channel-tab ${i.channel === "audio" ? "active" : ""}" data-channel="audio" role="tab"><b>◉</b><span>Voice</span></button>
-        ${videoSupported() ? `<button class="channel-tab ${i.channel === "video" ? "active" : ""}" data-channel="video" role="tab"><b>▶</b><span>Video</span></button>` : ""}
+        <button class="channel-tab ${i.channel === "text" ? "active" : ""}" data-channel="text" role="tab"><b>${icon("text", 17)}</b><span>Write it</span></button>
+        <button class="channel-tab ${i.channel === "image" ? "active" : ""}" data-channel="image" role="tab"><b>${icon("image", 17)}</b><span>Photo</span></button>
+        <button class="channel-tab ${i.channel === "audio" ? "active" : ""}" data-channel="audio" role="tab"><b>${icon("mic", 17)}</b><span>Voice</span></button>
+        ${videoSupported() ? `<button class="channel-tab ${i.channel === "video" ? "active" : ""}" data-channel="video" role="tab"><b>${icon("video", 17)}</b><span>Video</span></button>` : ""}
       </div>
 
       <div class="channel-panel" ${i.channel === "text" ? "" : "hidden"}>
@@ -277,10 +319,10 @@ function reportForm() {
           <div class="uploader ${i.image ? "has-file" : ""}" id="image-drop">
             ${i.image
               ? `<img class="image-preview" src="${i.image.previewUrl}" alt="Photo of the reported issue" /><div class="uploader-actions"><button type="button" class="ghost-btn" id="image-replace">Replace</button><button type="button" class="ghost-btn danger" id="image-clear">Remove</button></div>`
-              : `<div class="uploader-empty"><b>▧</b><strong>Take or choose a photo</strong><small>Drag one here, or tap to open your camera</small></div>`}
+              : `<div class="uploader-empty"><b>${icon("image", 26)}</b><strong>Take or choose a photo</strong><small>Drag one here, or tap to open your camera</small></div>`}
           </div>
           <input type="file" id="image-input" accept="image/jpeg,image/png,image/webp,image/gif" capture="environment" hidden />
-          <div class="input-note">Claude reads the photo directly to identify the issue. JPEG, PNG, WebP or GIF up to 8 MB.</div>
+          <div class="input-note">${escapeHtml(state.config?.label || "The AI")} reads the photo directly to identify the issue. JPEG, PNG, WebP or GIF up to 8 MB.</div>
         </div>
         <div class="field">
           <label for="intake-caption">Add a note <span class="label-optional">(optional)</span></label>
@@ -308,7 +350,7 @@ function reportForm() {
           ${i.audio ? `
           <audio class="audio-playback" controls src="${i.audio.url}"></audio>
           <div class="uploader-actions">
-            <button type="button" class="ghost-btn" id="audio-rerecord">↻ Record again</button>
+            <button type="button" class="ghost-btn" id="audio-rerecord">${icon("history", 15)} Record again</button>
             <button type="button" class="ghost-btn danger" id="audio-clear">Remove</button>
           </div>` : ""}
           ` : `<div class="notice warn"><strong>Recording isn’t available in this browser.</strong> Type what you would have said in the box below, or use the text tab.</div>`}
@@ -317,10 +359,10 @@ function reportForm() {
           <label for="intake-transcript">Transcript ${audioIsNative() ? `<span class="label-optional">(optional — ${escapeHtml(state.config.label)} listens to the recording itself)</span>` : ""}</label>
           <textarea id="intake-transcript" placeholder="${audioIsNative() ? "Leave this empty and the AI will transcribe your recording. Type here only if you'd rather not record." : speechSupported() ? "Your words appear here as you speak. Correct anything the browser misheard." : "Your browser can’t transcribe speech — type what you said here."}">${escapeHtml(i.transcript)}</textarea>
           <div class="input-note">${audioIsNative()
-            ? `✦ The audio goes straight to ${escapeHtml(state.config.label)}, which transcribes and triages it. Anything you type here is treated as a hint.`
+            ? `${icon("sparkle", 12)} The audio goes straight to ${escapeHtml(state.config.label)}, which transcribes and triages it. Anything you type here is treated as a hint.`
             : speechSupported()
               ? "Transcribed in your browser, then sent to Civic AI. The recording is stored with the complaint as evidence."
-              : "⚠ Speech recognition isn’t supported here (it works in Chrome and Edge). The recording is still stored as evidence."}</div>
+              : `${icon("alert", 12)} Speech recognition isn’t supported here (it works in Chrome and Edge). The recording is still stored as evidence.`}</div>
         </div>
       </div>
 
@@ -330,7 +372,7 @@ function reportForm() {
           <div class="uploader ${i.video ? "has-file" : ""}" id="video-drop">
             ${i.video
               ? `<video class="video-preview" controls src="${i.video.url}"></video><div class="uploader-actions"><button type="button" class="ghost-btn" id="video-replace">Replace</button><button type="button" class="ghost-btn danger" id="video-clear">Remove</button></div><div class="input-note">${escapeHtml(i.video.name || "clip")} · ${(i.video.size / 1048576).toFixed(1)} MB</div>`
-              : `<div class="uploader-empty"><b>▶</b><strong>Take or choose a video</strong><small>Drag one here, or tap to open your camera</small></div>`}
+              : `<div class="uploader-empty"><b>${icon("video", 26)}</b><strong>Take or choose a video</strong><small>Drag one here, or tap to open your camera</small></div>`}
           </div>
           <input type="file" id="video-input" accept="video/*" capture="environment" hidden />
           <div class="input-note">The AI watches the clip — useful when the problem is a flow, a spread, or something you need to pan across. MP4, WebM or MOV up to 40 MB. Anything spoken in the clip is transcribed too.</div>
@@ -351,7 +393,7 @@ function reportForm() {
           <select id="intake-area">${areas.map((a) => `<option ${a === i.area ? "selected" : ""}>${escapeHtml(a)}</option>`).join("")}</select>
         </div>
       </div>
-      <button type="button" class="ghost-btn locate" id="locate-btn">⌖ ${i.latitude ? `Location attached (${i.latitude.toFixed(4)}, ${i.longitude.toFixed(4)})` : "Use my current location"}</button>
+      <button type="button" class="ghost-btn locate" id="locate-btn">${icon("crosshair", 14)} ${i.latitude ? `Location attached (${i.latitude.toFixed(4)}, ${i.longitude.toFixed(4)})` : "Use my current location"}</button>
 
       <button class="primary-btn" id="analyze-btn" style="width:100%;margin-top:16px">Continue with Civic AI →</button>
     </section>
@@ -360,7 +402,7 @@ function reportForm() {
       <div class="eyebrow">Transparent triage</div>
       <h2>What happens next?</h2>
       <p>We’ll identify the issue, find the right authority, and flag anything that needs human attention — before anything is submitted.</p>
-      <div class="ai-wait" id="analysis-empty"><div class="ai-wait-mark">✦</div>Your analysis will appear here.</div>
+      <div class="ai-wait" id="analysis-empty"><div class="ai-wait-mark">${icon("sparkle", 26)}</div>Your analysis will appear here.</div>
       <div id="analysis-result"></div>
     </aside>
   </div>`;
@@ -377,7 +419,7 @@ function renderAnalysis(analysis) {
     ${analysis.evidenceQuality && analysis.evidenceQuality !== "Clear" && analysis.evidenceQuality !== "No evidence" ? `<div class="notice warn"><strong>Evidence is ${escapeHtml(analysis.evidenceQuality.toLowerCase())}.</strong> The AI could not read much from your attachment — adding a clearer one will get this routed faster.</div>` : ""}
     <div class="decision"><span class="decision-label">Detected issue</span><span class="decision-value">${escapeHtml(analysis.issueCategory)}</span><div class="score-row"><div class="score-bar"><i style="width:${analysis.issueConfidence}%"></i></div><small>${analysis.issueConfidence}% confidence</small></div></div>
     <div class="decision"><span class="decision-label">Recommended authority</span><span class="decision-value teal">${escapeHtml(auth ? auth.name : analysis.authorityId)}</span><small class="decision-note">${escapeHtml(auth ? auth.fullName : "")} · ${analysis.authorityConfidence}% confidence</small></div>
-    <div class="decision"><span class="decision-label">Priority</span><span class="tag ${priorityClass(analysis.priorityRecommendation)}">${escapeHtml(analysis.priorityRecommendation)}</span><small class="decision-note">${escapeHtml(analysis.priorityReason || "")}</small>${sensitive?.detected ? `<small class="decision-warn">↑ ${escapeHtml(sensitive.name || sensitive.type)} is nearby (${escapeHtml(sensitive.relevance)} relevance)</small>` : ""}</div>
+    <div class="decision"><span class="decision-label">Priority</span><span class="tag ${priorityClass(analysis.priorityRecommendation)}">${escapeHtml(analysis.priorityRecommendation)}</span><small class="decision-note">${escapeHtml(analysis.priorityReason || "")}</small>${sensitive?.detected ? `<small class="decision-warn">${icon("alert", 12)} ${escapeHtml(sensitive.name || sensitive.type)} is nearby (${escapeHtml(sensitive.relevance)} relevance)</small>` : ""}</div>
     <div class="decision"><span class="decision-label">Authenticity check</span><span class="decision-value">${escapeHtml(analysis.authenticityAssessment.status)}</span><small class="decision-note">${escapeHtml(analysis.authenticityAssessment.reason)}</small></div>
     ${analysis.recommendedQuestions?.length ? `<div class="decision"><span class="decision-label">Still unclear</span><ul class="question-list">${analysis.recommendedQuestions.map((q) => `<li>${escapeHtml(q)}</li>`).join("")}</ul></div>` : ""}
     <div class="complaint-preview"><small>Generated complaint</small><p>${escapeHtml(analysis.complaint.subject)}</p><span>${escapeHtml(analysis.complaint.requestedAction)}</span></div>
@@ -616,7 +658,7 @@ async function analyzeIntake() {
 
     renderAnalysis(result.analysis);
   } catch (error) {
-    $("#analysis-empty").innerHTML = `<div class="ai-wait-mark">⚠</div>${escapeHtml(error.message)}`;
+    $("#analysis-empty").innerHTML = `<div class="ai-wait-mark warn">${icon("alert", 26)}</div>${escapeHtml(error.message)}`;
     toast(error.message);
   } finally {
     button.disabled = false;
@@ -667,8 +709,8 @@ function assignmentSection(report) {
           <strong>${escapeHtml(who.name)}</strong>
           <small>${escapeHtml(who.jobTitle || "Field officer")}${org ? ` · ${escapeHtml(org.name)}` : ""}</small>
           ${who.phone || who.email ? `<div class="contact-links">
-            ${who.phone ? `<a class="contact-link" href="tel:${escapeHtml(who.phone.replace(/\s/g, ""))}">☎ ${escapeHtml(who.phone)}</a>` : ""}
-            ${who.email ? `<a class="contact-link" href="mailto:${escapeHtml(who.email)}">✉ ${escapeHtml(who.email)}</a>` : ""}
+            ${who.phone ? `<a class="contact-link" href="tel:${escapeHtml(who.phone.replace(/\s/g, ""))}">${icon("phone", 13)} ${escapeHtml(who.phone)}</a>` : ""}
+            ${who.email ? `<a class="contact-link" href="mailto:${escapeHtml(who.email)}">${icon("mail", 13)} ${escapeHtml(who.email)}</a>` : ""}
           </div>` : `<div class="contact-links"><span class="meta-dim">No contact number on file.</span></div>`}
           ${report.assignedAt ? `<small class="assigned-when">Assigned ${timeAgo(report.assignedAt)}</small>` : ""}
         </div>
@@ -686,7 +728,7 @@ function assignmentSection(report) {
     : "";
 
   const citizenPhone = report.citizenContact
-    ? `<div class="contact-aside"><span class="decision-label">Citizen contact</span><a class="contact-link" href="tel:${escapeHtml(report.citizenContact.replace(/\s/g, ""))}">☎ ${escapeHtml(report.citizenContact)}</a> <span class="meta-dim">${escapeHtml(report.citizen || "")}</span></div>`
+    ? `<div class="contact-aside"><span class="decision-label">Citizen contact</span><a class="contact-link" href="tel:${escapeHtml(report.citizenContact.replace(/\s/g, ""))}">${icon("phone", 13)} ${escapeHtml(report.citizenContact)}</a> <span class="meta-dim">${escapeHtml(report.citizen || "")}</span></div>`
     : "";
 
   return `<div class="detail-section"><h3>${report.isOwner ? "Who is handling your report" : "Assigned officer"}</h3>${card}${picker}${citizenPhone}</div>`;
@@ -739,7 +781,7 @@ function detailPage(report) {
   <div class="case-detail">
     <section class="card detail-main">
       <div class="detail-title">
-        <div><div class="eyebrow">${escapeHtml(report.id)} · ${CHANNEL_ICON[report.channel] || "▤"} ${escapeHtml(report.source || "")}</div><h1>${escapeHtml(report.title)}</h1><p>⌖ ${escapeHtml(report.location || "Location not specified")} · Reported by ${escapeHtml(report.citizen || "a citizen")} · ${timeAgo(report.createdAt)}</p></div>
+        <div><div class="eyebrow">${escapeHtml(report.id)} · ${icon(CHANNEL_ICON[report.channel] || "text", 13)} ${escapeHtml(report.source || "")}</div><h1>${escapeHtml(report.title)}</h1><p>${icon("pin", 13)} ${escapeHtml(report.location || "Location not specified")} · Reported by ${escapeHtml(report.citizen || "a citizen")} · ${timeAgo(report.createdAt)}</p></div>
         <div class="detail-status"><span class="tag ${priorityClass(report.priority)}">${escapeHtml(report.priority)} priority</span><small>${escapeHtml(report.status)}</small></div>
       </div>
 
@@ -766,14 +808,14 @@ function detailPage(report) {
       ${state.role === "authority"
         ? `<div class="detail-section"><h3>Authority action</h3><div class="status-actions"><button data-status="Under Review">Accept case</button><button data-status="In Progress">Mark in progress</button><button data-status="Resolved">Mark resolved</button></div></div>`
         : report.status === "Resolved" && report.userId === state.user.id
-          ? `<div class="detail-section"><h3>Is this issue really resolved?</h3><div class="status-actions"><button data-confirm="resolved">✓ Yes, it’s resolved</button><button data-confirm="disputed">↻ No, it’s still present</button></div></div>`
+          ? `<div class="detail-section"><h3>Is this issue really resolved?</h3><div class="status-actions"><button data-confirm="resolved">${icon("check", 15)} Yes, it’s resolved</button><button data-confirm="disputed">${icon("history", 15)} No, it’s still present</button></div></div>`
           : ""}
     </section>
 
     <aside class="card analysis-card">
       <div class="eyebrow">Decision record</div><h2>AI + human oversight</h2>
       <p>Recommendations are validated by rules and can be changed by authorized staff.</p>
-      <div class="decision"><span class="decision-label">Sensitive location</span><span class="decision-value">${report.sensitive ? `⚠ ${escapeHtml(report.sensitive.name || report.sensitive.type)}` : "None detected"}</span>${report.sensitive ? `<small class="decision-warn">${escapeHtml(report.sensitive.distance || "Distance not specified")} · ${escapeHtml(report.sensitive.relevance)} relevance</small>` : ""}</div>
+      <div class="decision"><span class="decision-label">Sensitive location</span><span class="decision-value">${report.sensitive ? `${icon("alert", 13)} ${escapeHtml(report.sensitive.name || report.sensitive.type)}` : "None detected"}</span>${report.sensitive ? `<small class="decision-warn">${escapeHtml(report.sensitive.distance || "Distance not specified")} · ${escapeHtml(report.sensitive.relevance)} relevance</small>` : ""}</div>
       <div class="decision"><span class="decision-label">Authenticity</span><span class="decision-value">${escapeHtml(report.authenticity || "—")}</span><div class="score-row"><div class="score-bar"><i style="width:${Math.max(6, 100 - (report.risk || 8))}%"></i></div><small>Risk ${report.risk ?? "—"}/100</small></div></div>
       <div class="decision"><span class="decision-label">Reported duration</span><span class="decision-value">${escapeHtml(report.duration || "Not specified")}</span></div>
       <div class="decision"><span class="decision-label">Incident cluster</span><span class="decision-value">${escapeHtml(report.duplicate || "No duplicate detected")}</span><small class="decision-note">${report.reports > 1 ? `${report.reports} citizen reports preserved` : "The system keeps checking nearby reports."}</small></div>

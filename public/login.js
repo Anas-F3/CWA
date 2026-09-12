@@ -28,6 +28,18 @@ async function api(url, options) {
   return data;
 }
 
+// The same stroke-icon language as the app, kept small since this page only
+// needs four of them.
+const ICONS = {
+  text: '<path d="M5.5 3.5h9l5 5v12a1 1 0 0 1-1 1h-13a1 1 0 0 1-1-1v-16a1 1 0 0 1 1-1Z"/><path d="M14 3.5v5h5"/><path d="M8.5 13h7M8.5 16.5h5"/>',
+  image: '<rect x="3.5" y="4.5" width="17" height="15" rx="2"/><circle cx="8.5" cy="9.5" r="1.6"/><path d="m4 17 4.8-4.3a1.5 1.5 0 0 1 2 0L16 17.5"/>',
+  mic: '<rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0"/><path d="M12 17.5V21"/>',
+  video: '<rect x="2.5" y="5.5" width="13" height="13" rx="2"/><path d="m15.5 10 6-3.2v10.4l-6-3.2Z"/>',
+};
+
+const icon = (name, size = 18) =>
+  `<svg class="icon" viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name] || ""}</svg>`;
+
 const DEMO_LOGINS = [
   { label: "Citizen", email: "citizen@demo.pk" },
   { label: "KW&SC", email: "kwsc@demo.pk" },
@@ -47,10 +59,10 @@ function render() {
       <h1>Karachi, reported by the people who live in it.</h1>
       <p>Report a problem by text, photo, voice or video. AI works out what it is and sends it to the authority that owns it.</p>
       <ul class="auth-points">
-        <li><b>▤</b> Write it in English, Urdu or Roman Urdu</li>
-        <li><b>▧</b> Photograph it — the AI reads the picture</li>
-        <li><b>◉</b> Say it — the AI listens and transcribes</li>
-        <li><b>▶</b> Film it — the AI watches the clip</li>
+        <li><b>${icon("text")}</b> Write it in English, Urdu or Roman Urdu</li>
+        <li><b>${icon("image")}</b> Photograph it — the AI reads the picture</li>
+        <li><b>${icon("mic")}</b> Say it — the AI listens and transcribes</li>
+        <li><b>${icon("video")}</b> Film it — the AI watches the clip</li>
       </ul>
     </aside>
 
