@@ -326,6 +326,11 @@ async function handleApi(req, res, url) {
     if (handled !== false) return handled;
   }
 
+  // Cheap liveness probe for the host's health check — no auth, no DB work.
+  if (req.method === "GET" && pathname === "/api/health") {
+    return json(res, 200, { ok: true, uptime: Math.round(process.uptime()) });
+  }
+
   if (req.method === "GET" && pathname === "/api/config") {
     return json(res, 200, {
       ...ai.status(),

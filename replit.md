@@ -38,6 +38,7 @@ CIVIC_AI_PROVIDER=gemini
 | `GEMINI_MODEL` | Override the model (default `gemini-3.5-flash`) |
 | `PORT` | HTTP port (default `5000`) |
 | `DATA_DIR` | Where `civic.db` lives (default `./data`) |
+| `NODE_VERSION` | Host-side Node pin — must be 24 or newer |
 
 On start the server prints which engine is active:
 
@@ -53,6 +54,48 @@ never hard-fails during a demo.
 ```bash
 rm -rf data && npm run dev
 ```
+
+---
+
+## Deploying
+
+`render.yaml` in the repo root is a Render Blueprint. Render runs the app as a
+normal long-lived Node process, which is what it needs.
+
+1. Push the repo to GitHub.
+2. At [dashboard.render.com/blueprints](https://dashboard.render.com/blueprints) →
+   **New Blueprint Instance** → pick the repo. Render reads `render.yaml`.
+3. It prompts for `GEMINI_API_KEY`. Paste it there — it is stored as a secret and
+   never committed.
+4. Deploy. The health check is `GET /api/health`.
+
+### Free plan caveat
+
+The free plan has an **ephemeral disk** and sleeps after 15 minutes idle, so
+`civic.db` resets on every cold start. The app re-seeds demo accounts and
+complaints on boot, so a demo always works — but anything submitted during it is
+lost on the next restart, and the first request after a sleep takes ~50s.
+
+To make data permanent, switch to a paid instance and attach a disk (the exact
+YAML is commented in `render.yaml`). `DATA_DIR` is already honoured by `db.js`,
+so no code changes are needed.
+
+### Why not Vercel / Netlify
+
+Serverless hosting cannot run this app:
+
+- **Ephemeral filesystem.** `node:sqlite` writes to a real file. On a serverless
+  platform every account, complaint and session disappears between invocations.
+- **Request body limits.** Intake accepts 8 MB photos, 12 MB audio and 40 MB
+  video in the request body; Vercel's serverless limit is ~4.5 MB, which breaks
+  the core feature.
+- **Function timeouts.** Video triage measured 9–17s, and the Gemini Files API
+  upload-and-poll path took 17s.
+
+Making it work there would mean porting the database to hosted Postgres and
+media to blob storage with direct client uploads — a real rewrite, not a config
+change. Any host that runs a persistent Node process (Render, Railway, Fly.io) is
+a direct fit.
 
 ---
 
@@ -332,6 +375,7 @@ public/app.js        Dashboard app + client-side routing
 public/login.html    Sign-in / sign-up page (its own document)
 public/login.js      Auth page logic
 scripts/users.js     Account admin CLI (list, set-password, promote)
+render.yaml          Render Blueprint (persistent Node process + health check)
 ```
 
 ---

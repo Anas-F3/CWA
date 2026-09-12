@@ -1,0 +1,52 @@
+# Render Blueprint — https://render.com/docs/blueprint-spec
+#
+# Deploys the app as a normal long-lived Node process, which is what it needs:
+# a writable disk for the SQLite database, request bodies up to 40 MB for video
+# intake, and no function timeout on the slower AI calls.
+#
+# GEMINI_API_KEY is deliberately NOT in this file. It is marked sync:false, so
+# Render prompts for it once in the dashboard and stores it as a secret.
+
+services:
+  - type: web
+    name: city-around-you
+    runtime: node
+    plan: free
+    region: singapore          # closest region to Karachi
+    buildCommand: npm ci
+    startCommand: node server.js
+    healthCheckPath: /api/health
+
+    envVars:
+      # node:sqlite is unflagged from Node 24; earlier versions need
+      # --experimental-sqlite and will fail to boot without it.
+      - key: NODE_VERSION
+        value: "24"
+      - key: CIVIC_AI_PROVIDER
+        value: gemini
+      - key: GEMINI_API_KEY
+        sync: false            # set in the Render dashboard, never committed
+
+# ---------------------------------------------------------------------------
+# Making the database survive restarts
+#
+# The free plan has an ephemeral disk and sleeps after 15 minutes idle, so the
+# database resets on every cold start. The app re-seeds demo accounts and
+# complaints automatically, so a demo still works — but anything submitted
+# during it is lost on the next restart.
+#
+# To keep data permanently, switch to a paid instance and attach a disk:
+#
+#     plan: starter
+#     disk:
+#       name: civic-data
+#       mountPath: /var/data
+#       sizeGB: 1
+#
+# then add:
+#
+#     - key: DATA_DIR
+#       value: /var/data
+#
+# DATA_DIR is already honoured by db.js, so no code change is needed.
+# ---------------------------------------------------------------------------
