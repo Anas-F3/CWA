@@ -1,0 +1,10 @@
+{
+  "name": "city-around-you",
+  "version": "1.0.0",
+  "private": true,
+  "description": "The City Around You — Karachi civic intelligence hackathon MVP",
+  "scripts": {
+    "dev": "node server.js",
+    "start": "node server.js"
+  }
+}

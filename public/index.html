@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0c292a" />
+    <title>The City Around You — Karachi Civic Intelligence</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand"><div class="brand-mark">K</div><div><strong>The City</strong><span>Around You</span></div></div>
+        <div class="demo-chip"><span class="pulse"></span> Demo environment</div>
+        <nav id="nav"></nav>
+        <div class="sidebar-bottom">
+          <div class="privacy-note"><span>◈</span><div><strong>Built for trust</strong><small>AI recommends. People decide.</small></div></div>
+          <div class="user-mini"><div class="avatar">AK</div><div><strong id="user-name">Ayesha Khan</strong><small id="user-role">Citizen account</small></div><span>⌄</span></div>
+        </div>
+      </aside>
+      <main class="main">
+        <header class="topbar">
+          <div class="breadcrumb"><span id="crumb-section">Overview</span><span>/</span><strong id="crumb-title">Good morning, Ayesha</strong></div>
+          <div class="top-actions"><button class="icon-btn" aria-label="Notifications">♧<i></i></button><div class="role-select"><span class="role-dot"></span><select id="role-switch"><option value="citizen">Citizen view</option><option value="authority">Authority view</option><option value="admin">Admin view</option></select></div></div>
+        </header>
+        <div id="content"></div>
+      </main>
+    </div>
+    <div id="toast" class="toast"></div>
+    <script src="/app.js"></script>
+  </body>
+</html>
